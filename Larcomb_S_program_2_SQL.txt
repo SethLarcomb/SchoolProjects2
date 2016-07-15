@@ -1,0 +1,313 @@
+Seth Larcomb
+CS 3010 
+Program 2
+Class 2:30-3:20
+
+prog2_00.sql
+
+Delete all tables
+
+DROP TABLE IF EXISTS general_ledger_accounts, invoice_archive,
+invoice_line_items, invoices, terms, vendors_contacts, vendors;
+
+
+Create new tables to database
+
+mysql> \. create_my_guitar_shop.sql
+
+mysql> show tables;
++--------------------+
+| Tables_in_cs3010p4 |
++--------------------+
+| addresses          |
+| categories         |
+| customers          |
+| order_items        |
+| orders             |
+| products           |
++--------------------+
+6 rows in set (0.00 sec)
+
+
+------------------------------------------------------------------------------------------------------------
+
+prog2_01.sql
+
+SELECT product_name, list_price, date_added
+FROM products
+WHERE list_price > 500 AND list_price < 2000
+ORDER BY date_added;
+
+Table
++--------------------------------------+------------+---------------------+
+| product_name                         | list_price | date_added          |
++--------------------------------------+------------+---------------------+
+| Fender Stratocaster                  |     699.00 | 2011-10-30 09:32:40 |
+| Gibson Les Paul                      |    1199.00 | 2011-12-05 16:33:13 |
+| Fender Precision                     |     799.99 | 2012-06-01 11:29:35 |
+| Ludwig 5-piece Drum Set with Cymbals |     699.99 | 2012-07-30 12:46:40 |
+| Tama 5-Piece Drum Set with Cymbals   |     799.99 | 2012-07-30 13:14:15 |
++--------------------------------------+------------+---------------------+
+5 rows in set (0.01 sec)
+
+------------------------------------------------------------------------------------------------------------
+
+prog2_02.sql
+
+
+SELECT product_name, list_price, discount_percent,
+ROUND((list_price*(discount_percent*0.01)),2) AS discount_amount,
+ROUND((list_price - (list_price*(discount_percent*0.01))),2) AS discount_price
+FROM products
+ORDER BY discount_price DESC
+LIMIT 5;
+
+
+Table
+
++--------------------------------------+------------+------------------+-----------------+----------------+
+| product_name                         | list_price | discount_percent | discount_amount | discount_price |
++--------------------------------------+------------+------------------+-----------------+----------------+
+| Gibson SG                            |    2517.00 |            52.00 |         1308.84 |        1208.16 |
+| Gibson Les Paul                      |    1199.00 |            30.00 |          359.70 |         839.30 |
+| Tama 5-Piece Drum Set with Cymbals   |     799.99 |            15.00 |          120.00 |         679.99 |
+| Fender Precision                     |     799.99 |            30.00 |          240.00 |         559.99 |
+| Ludwig 5-piece Drum Set with Cymbals |     699.99 |            30.00 |          210.00 |         489.99 |
++--------------------------------------+------------+------------------+-----------------+----------------+
+5 rows in set (0.00 sec)
+
+
+------------------------------------------------------------------------------------------------------------
+
+prog2_03.sql
+
+SELECT item_id, item_price, discount_amount, quantity,
+(item_price * quantity) AS price_total,
+(discount_amount * quantity) AS discount_total,
+((item_price - discount_amount) * quantity) AS item_total
+FROM order_items
+WHERE ((item_price - discount_amount) * quantity) > 500
+ORDER BY item_total DESC;
+
+
+Table
+
++---------+------------+-----------------+----------+-------------+----------------+------------+
+| item_id | item_price | discount_amount | quantity | price_total | discount_total | item_total |
++---------+------------+-----------------+----------+-------------+----------------+------------+
+|       5 |    1199.00 |          359.70 |        2 |     2398.00 |         719.40 |    1678.60 |
+|       3 |    2517.00 |         1308.84 |        1 |     2517.00 |        1308.84 |    1208.16 |
+|       1 |    1199.00 |          359.70 |        1 |     1199.00 |         359.70 |     839.30 |
+|      11 |     799.99 |          120.00 |        1 |      799.99 |         120.00 |     679.99 |
+|       9 |     799.99 |          240.00 |        1 |      799.99 |         240.00 |     559.99 |
++---------+------------+-----------------+----------+-------------+----------------+------------+
+5 rows in set (0.00 sec)
+
+
+
+-----------------------------------------------------------------------------------------------------------
+
+prog2_04.sql
+
+SELECT last_name, first_name, order_date, product_name, item_price,
+discount_amount, quantity
+FROM  customers c JOIN orders o
+ON c.customer_id = o.order_id
+JOIN order_items i
+ON o.order_id = i.order_id
+JOIN products p
+ON i.order_id = p.product_id
+ORDER BY last_name, order_date, product_name;
+
+Tables
++-----------+------------+---------------------+------------------------+------------+-----------------+----------+
+| last_name | first_name | order_date          | product_name           | item_price | discount_amount | quantity |
++-----------+------------+---------------------+------------------------+------------+-----------------+----------+
+| Brown     | Christine  | 2012-03-29 09:44:58 | Gibson SG              |    2517.00 |         1308.84 |        1 |
+| Brown     | Christine  | 2012-03-29 09:44:58 | Gibson SG              |     415.00 |          161.85 |        1 |
+| Esway     | Heather    | 2012-04-02 11:26:38 | Hofner Icon            |     799.99 |          120.00 |        1 |
+| Goldstein | David      | 2012-03-30 15:22:31 | Yamaha FG700S          |    1199.00 |          359.70 |        2 |
+| Hernandez | Gary       | 2012-04-01 23:11:12 | Fender Precision       |     699.00 |          209.70 |        1 |
+| Hernandez | Gary       | 2012-04-01 23:11:12 | Fender Precision       |     799.99 |          240.00 |        1 |
+| Hernandez | Gary       | 2012-04-01 23:11:12 | Fender Precision       |     699.99 |          210.00 |        1 |
+| Sherwood  | Allan      | 2012-03-28 09:40:28 | Fender Stratocaster    |    1199.00 |          359.70 |        1 |
+| Valentino | Erin       | 2012-03-31 05:43:11 | Washburn D10S          |     299.00 |            0.00 |        1 |
+| Wilson    | Frank Lee  | 2012-03-31 18:37:22 | Rodriguez Caballero 11 |     299.00 |            0.00 |        1 |
+| Zimmer    | Barry      | 2012-03-28 11:23:20 | Gibson Les Paul        |     489.99 |          186.20 |        1 |
++-----------+------------+---------------------+------------------------+------------+-----------------+----------+
+11 rows in set (0.00 sec)
+
+
+---------------------------------------------------------------------------------------------------------
+
+prog2_05.sql
+
+SELECT p1.product_name, p1.list_price
+FROM products p1 JOIN products p2
+ON p1.product_id <> p2.product_id AND
+   p1.list_price = p2.list_price
+ORDER BY product_name;
+
+
+
+Tables
++------------------------------------+------------+
+| product_name                       | list_price |
++------------------------------------+------------+
+| Fender Precision                   |     799.99 |
+| Tama 5-Piece Drum Set with Cymbals |     799.99 |
++------------------------------------+------------+
+2 rows in set (0.00 sec)
+
+--------------------------------------------------------------------------------------------------------
+
+prog2_06.sql
+
+SELECT category_name, product_id
+FROM categories c LEFT JOIN products p
+ON p.product_id = null;
+
+Table
++---------------+------------+
+| category_name | product_id |
++---------------+------------+
+| Basses        |       NULL |
+| Drums         |       NULL |
+| Guitars       |       NULL |
+| Keyboards     |       NULL |
++---------------+------------+
+4 rows in set (0.01 sec)
+
+-----------------------------------------------------------------------------------------------------
+prog2_07.sql
+
+
+SELECT 'SHIPPED' AS ship_status, order_id, order_date
+FROM orders
+WHERE ship_date !=  null
+UNION
+SELECT 'NOT SHIPPED' AS ship_status, order_id, order_date
+FROM orders
+WHERE ship_date IS null
+ORDER BY order_date;
+
+
+Tables
++-------------+----------+---------------------+
+| ship_status | order_id | order_date          |
++-------------+----------+---------------------+
+| NOT SHIPPED |        6 | 2012-03-31 18:37:22 |
+| NOT SHIPPED |        8 | 2012-04-02 11:26:38 |
+| NOT SHIPPED |        9 | 2012-04-03 12:22:31 |
++-------------+----------+---------------------+
+3 rows in set (0.01 sec)
+
+----------------------------------------------------------------------------------------------------
+prog2_08.sql
+
+SELECT category_name, COUNT(*) AS total,
+MAX(list_price) AS greatist
+FROM categories c JOIN products p
+ON c.category_id = p.category_id
+GROUP BY category_name DESC;
+
+
++---------------+-------+---------+
+| category_name | total | highest |
++---------------+-------+---------+
+| Guitars       |     6 | 2517.00 |
+| Drums         |     2 |  799.99 |
+| Basses        |     2 |  799.99 |
++---------------+-------+---------+
+3 rows in set (0.00 sec)
+
+-----------------------------------------------------------------------------------------------------
+prog2_09.sql
+
+SELECT email_address, i.item_price*quantity AS sum_item_price,
+	discount_amount*quantity AS sum_discount_amount
+FROM customers c JOIN orders o
+	ON c.customer_id = o.customer_id
+	JOIN order_items i 
+	ON o.order_id =  i.order_id
+ORDER BY sum_item_price - sum_discount_amount DESC;
+
++-----------------------------+----------------+---------------------+
+| email_address               | sum_item_price | sum_discount_amount |
++-----------------------------+----------------+---------------------+
+| christineb@solarone.com     |        2398.00 |              719.40 |
+| allan.sherwood@yahoo.com    |        2517.00 |             1308.84 |
+| allan.sherwood@yahoo.com    |        1199.00 |              359.70 |
+| gary_hernandez@yahoo.com    |         799.99 |              120.00 |
+| frankwilson@sbcglobal.net   |         799.99 |              240.00 |
+| frankwilson@sbcglobal.net   |         699.99 |              210.00 |
+| david.goldstein@hotmail.com |         699.00 |              209.70 |
+| frankwilson@sbcglobal.net   |         699.00 |              209.70 |
+| barryz@gmail.com            |         489.99 |              186.20 |
+| david.goldstein@hotmail.com |         299.00 |                0.00 |
+| erinv@gmail.com             |         299.00 |                0.00 |
+| allan.sherwood@yahoo.com    |         415.00 |              161.85 |
++-----------------------------+----------------+---------------------+
+
+--------------------------------------------------------------------------------------------------
+
+prog2_10.sql
+
+SELECT email_address, COUNT(*) AS orders, (item_price-discount_amount)*quantity AS total_amount
+FROM customers c JOIN orders o
+	ON c.customer_id = o.customer_id
+	JOIN order_items i 
+	ON o.order_id =  i.order_id
+GROUP BY email_address
+HAVING orders > 1
+ORDER BY total_amount DESC;
+
++-----------------------------+--------+--------------+
+| email_address               | orders | total_amount |
++-----------------------------+--------+--------------+
+| allan.sherwood@yahoo.com    |      3 |       839.30 |
+| frankwilson@sbcglobal.net   |      3 |       489.30 |
+| david.goldstein@hotmail.com |      2 |       299.00 |
++-----------------------------+--------+--------------+
+
+-----------------------------------------------------------------------------------------------------
+
+prog2_11.sql
+
+
+
+INSERT INTO products
+(product_id, category_id, product_code, product_name, description,
+list_price, discount_percent, date_added)
+VALUES
+('auto_increment', 4, 'dgx_640', 'Yamaha DGX 640 88-Key Digital Piano',
+'Long description to come.', 799.99, 0, '2013-04-19 9:29:32');
+
+
+mysql> \. prog2_11.sql
+Query OK, 1 row affected, 2 warnings (0.02 sec)
+
+--------------------------------------------------------------------------------------------------
+
+prog2_12.sql
+ 
+INSERT INTO customers
+(email_address, password, first_name, last_name)
+VALUES
+('rick@raven.com', '' , 'Rick' , 'Raven');
+
++-----------------------------+------------------------------------------+------------+-----------+
+| email_address               | password                                 | first_name | last_name |
++-----------------------------+------------------------------------------+------------+-----------+
+| allan.sherwood@yahoo.com    | 650215acec746f0e32bdfff387439eefc1358737 | Allan      | Sherwood  |
+| barryz@gmail.com            | 3f563468d42a448cb1e56924529f6e7bbe529cc7 | Barry      | Zimmer    |
+| christineb@solarone.com     | ed19f5c0833094026a2f1e9e6f08a35d26037066 | Christine  | Brown     |
+| david.goldstein@hotmail.com | b444ac06613fc8d63795be9ad0beaf55011936ac | David      | Goldstein |
+| erinv@gmail.com             | 109f4b3c50d7b0df729d299bc6f8e9ef9066971f | Erin       | Valentino |
+| frankwilson@sbcglobal.net   | 3ebfa301dc59196f18593c45e519287a23297589 | Frank Lee  | Wilson    |
+| gary_hernandez@yahoo.com    | 1ff2b3704aede04eecb51e50ca698efd50a1379b | Gary       | Hernandez |
+| heatheresway@mac.com        | 911ddc3b8f9a13b5499b6bc4638a2b4f3f68bf23 | Heather    | Esway     |
+| rick@raven.com              |                                          | Rick       | Raven     |
++-----------------------------+------------------------------------------+------------+-----------+
+9 rows in set (0.00 sec)
+
